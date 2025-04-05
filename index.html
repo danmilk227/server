@@ -1,61 +1,112 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Trip Manager</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trip Manager | @DanMilk27 Admin</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-button-color: #50a8eb;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #f0f0f0;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
             padding: 0;
             margin: 0;
+            min-height: 100vh;
         }
+        
         .container {
             padding: 15px;
             max-width: 100%;
         }
+        
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-top: 10px;
         }
-        .month-nav {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        
+        .admin-badge {
+            background-color: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 5px;
         }
+        
+        .btn-tg-primary {
+            background-color: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 15px;
+            width: 100%;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .btn-tg-secondary {
+            background-color: var(--tg-theme-secondary-bg-color);
+            color: var(--tg-theme-text-color);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 15px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .btn-tg-danger {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 15px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
         .calendar {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 5px;
             margin-bottom: 15px;
         }
+        
         .day-header {
             text-align: center;
             font-weight: bold;
             padding: 5px;
             font-size: 14px;
         }
+        
         .day {
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            background: var(--tg-theme-secondary-bg-color);
             border-radius: 10px;
             padding: 5px;
             min-height: 60px;
             font-size: 12px;
         }
+        
         .day-number {
             text-align: right;
             font-weight: bold;
             margin-bottom: 3px;
         }
+        
         .trip-badge {
-            background: var(--tg-theme-button-color, #50a8eb);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
             border-radius: 5px;
             padding: 2px 5px;
             margin: 2px 0;
@@ -63,55 +114,69 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            cursor: pointer;
         }
+        
         .trip-details {
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            background: var(--tg-theme-secondary-bg-color);
             border-radius: 10px;
             padding: 15px;
             margin-top: 15px;
         }
+        
         .document-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 8px 0;
-            border-bottom: 1px solid var(--tg-theme-hint-color, #cccccc);
+            border-bottom: 1px solid #ddd;
         }
-        .btn-tg-primary {
-            background-color: var(--tg-theme-button-color, #50a8eb);
-            color: var(--tg-theme-button-text-color, #ffffff);
+        
+        .modal-tg {
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+        }
+        
+        .form-control-tg {
+            background-color: var(--tg-theme-secondary-bg-color);
+            color: var(--tg-theme-text-color);
             border: none;
-            border-radius: 10px;
-            padding: 8px 15px;
+        }
+        
+        #loading-spinner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Шапка с навигацией по месяцам -->
+    <div id="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div class="container" id="main-container">
         <div class="header">
-            <h4 id="month-year"></h4>
-            <div class="month-nav">
-                <button class="btn btn-sm btn-tg-primary" id="prev-month">◀</button>
-                <button class="btn btn-sm btn-tg-primary" id="next-month">▶</button>
-            </div>
+            <h4>Trip Manager</h4>
+            <p>Добро пожаловать, <span id="username"></span> <span id="admin-badge"></span></p>
         </div>
 
-        <!-- Календарь -->
-        <div class="calendar" id="calendar"></div>
-
-        <!-- Детали командировки -->
-        <div class="trip-details" id="trip-details"></div>
-
-        <!-- Кнопки управления -->
-        <div class="d-grid gap-2">
-            <button class="btn btn-tg-primary" id="add-trip-btn">Добавить командировку</button>
-            <button class="btn btn-tg-primary" id="manage-employees-btn">Управление сотрудниками</button>
+        <div id="content">
+            <!-- Основной контент будет загружаться здесь -->
         </div>
     </div>
 
     <!-- Модальные окна -->
-    <div class="modal fade" id="tripModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade modal-tg" id="tripModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -125,18 +190,15 @@
         </div>
     </div>
 
-    <div class="modal fade" id="employeesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade modal-tg" id="adminModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Управление сотрудниками</h5>
+                    <h5 class="modal-title">Админ-панель</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="employeesModalBody">
-                    <!-- Список сотрудников будет добавляться динамически -->
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-tg-primary" id="add-employee-btn">Добавить сотрудника</button>
+                <div class="modal-body" id="adminModalBody">
+                    <!-- Контент админ-панели -->
                 </div>
             </div>
         </div>
@@ -144,9 +206,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const SERVER_URL = "https://tripmanager:5000";
-        let tg = window.Telegram.WebApp;
+        // Конфигурация
+        const SERVER_URL = "https://danmilk227.github.io/server";
+        const tg = window.Telegram.WebApp;
         let tgUser = tg.initDataUnsafe?.user;
+        let isAdmin = false;
         let currentDate = new Date();
         let employees = [];
         let trips = [];
@@ -155,40 +219,75 @@
 
         // Инициализация приложения
         function initApp() {
+            showLoading(true);
+            
             if (!tgUser) {
                 showError("Пожалуйста, откройте приложение в Telegram");
+                showLoading(false);
                 return;
             }
 
-            // Проверяем авторизацию
-            checkAuth().then(() => {
-                loadInitialData();
-                setupEventListeners();
-                tg.expand();
-            }).catch(err => {
-                showError("Ошибка авторизации: " + err.message);
-            });
+            // Настройка WebApp
+            tg.expand();
+            tg.enableClosingConfirmation();
+            tg.MainButton.hide();
+
+            // Отображаем информацию о пользователе
+            displayUserInfo();
+
+            // Проверяем авторизацию и загружаем данные
+            checkAuthAndLoadData();
         }
 
-        // Проверка авторизации
-        async function checkAuth() {
-            try {
-                const response = await fetch(`${SERVER_URL}/api/check_auth`, {
-                    headers: {
-                        'X-Telegram-User-ID': tgUser.id.toString()
-                    }
-                });
-                
-                const data = await response.json();
-                if (!data.authenticated) {
-                    throw new Error("Неавторизованный пользователь");
-                }
-            } catch (err) {
-                throw err;
+        function displayUserInfo() {
+            const username = tgUser.username || tgUser.first_name || 'Пользователь';
+            document.getElementById('username').textContent = username;
+            
+            // Проверка на администратора
+            if (tgUser.username === 'DanMilk27') {
+                isAdmin = true;
+                document.getElementById('admin-badge').innerHTML = '<span class="admin-badge">ADMIN</span>';
             }
         }
 
-        // Загрузка начальных данных
+        async function checkAuthAndLoadData() {
+            try {
+                await checkAuth();
+                await loadInitialData();
+                renderMainView();
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/auth`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Telegram-User-ID': tgUser.id.toString()
+                    },
+                    body: JSON.stringify({
+                        id: tgUser.id,
+                        username: tgUser.username,
+                        first_name: tgUser.first_name
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка авторизации');
+                }
+
+                const data = await response.json();
+                isAdmin = data.is_admin || isAdmin;
+            } catch (error) {
+                throw new Error('Не удалось авторизоваться');
+            }
+        }
+
         async function loadInitialData() {
             try {
                 [employees, trips, cities] = await Promise.all([
@@ -196,38 +295,65 @@
                     fetchData('trips'),
                     fetchData('cities')
                 ]);
-                
-                renderCalendar();
-            } catch (err) {
-                showError("Ошибка загрузки данных: " + err.message);
+            } catch (error) {
+                throw new Error('Ошибка загрузки данных');
             }
         }
 
-        // Настройка обработчиков событий
-        function setupEventListeners() {
-            document.getElementById('prev-month').addEventListener('click', prevMonth);
-            document.getElementById('next-month').addEventListener('click', nextMonth);
-            document.getElementById('add-trip-btn').addEventListener('click', showAddTripForm);
-            document.getElementById('manage-employees-btn').addEventListener('click', showEmployeesModal);
-        }
-
-        // Запрос данных с сервера
         async function fetchData(dataset) {
-            const response = await fetch(`${SERVER_URL}/api/data/${dataset}`, {
-                headers: {
-                    'X-Telegram-User-ID': tgUser.id.toString()
+            try {
+                const response = await fetch(`${SERVER_URL}/api/data/${dataset}`, {
+                    headers: {
+                        'X-Telegram-User-ID': tgUser.id.toString()
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка загрузки ${dataset}`);
                 }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Ошибка загрузки ${dataset}`);
+
+                const data = await response.json();
+                return data.data || [];
+            } catch (error) {
+                throw error;
             }
-            
-            const data = await response.json();
-            return data.data || [];
         }
 
-        // Рендер календаря
+        function renderMainView() {
+            let html = `
+                <div class="d-grid gap-2">
+                    <button class="btn-tg-primary" onclick="showCalendarView()">Календарь командировок</button>
+                    <button class="btn-tg-primary" onclick="showEmployeesView()">Список сотрудников</button>
+            `;
+
+            if (isAdmin) {
+                html += `
+                    <button class="btn-tg-danger" onclick="showAdminPanel()">Админ-панель</button>
+                `;
+            }
+
+            html += `</div>`;
+
+            document.getElementById('content').innerHTML = html;
+        }
+
+        function showCalendarView() {
+            document.getElementById('content').innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 id="month-year"></h5>
+                    <div>
+                        <button class="btn-tg-secondary" onclick="prevMonth()">◀</button>
+                        <button class="btn-tg-secondary" onclick="nextMonth()">▶</button>
+                    </div>
+                </div>
+                <div class="calendar" id="calendar"></div>
+                <div class="trip-details" id="trip-details"></div>
+                <button class="btn-tg-primary mt-3" onclick="showAddTripForm()">Добавить командировку</button>
+            `;
+
+            renderCalendar();
+        }
+
         function renderCalendar() {
             document.getElementById('month-year').textContent = 
                 `${currentDate.toLocaleString('ru-RU', { month: 'long' })} ${currentDate.getFullYear()}`;
@@ -278,17 +404,14 @@
             }
         }
 
-        // Получение командировок для даты
         function getTripsForDate(dateStr) {
             return trips.filter(trip => dateStr >= trip.start_date && dateStr <= trip.end_date);
         }
 
-        // Форматирование даты
         function formatDate(year, month, day) {
             return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
         }
 
-        // Навигация по месяцам
         function prevMonth() {
             currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
             renderCalendar();
@@ -299,10 +422,8 @@
             renderCalendar();
         }
 
-        // Показать детали командировки
         function showTripDetails(trip) {
             selectedTrip = trip;
-            const detailsEl = document.getElementById('trip-details');
             const employee = employees.find(e => e.id === trip.employee_id);
             
             let html = `
@@ -315,22 +436,15 @@
                 <div id="trip-documents"></div>
                 
                 <div class="d-grid gap-2 mt-3">
-                    <button class="btn btn-tg-primary" id="edit-trip-btn">Редактировать</button>
-                    <button class="btn btn-danger" id="delete-trip-btn">Удалить</button>
+                    <button class="btn-tg-primary" onclick="showEditTripForm()">Редактировать</button>
+                    <button class="btn-tg-danger" onclick="deleteTrip()">Удалить</button>
                 </div>
             `;
             
-            detailsEl.innerHTML = html;
-            
-            // Загружаем документы
+            document.getElementById('trip-details').innerHTML = html;
             loadTripDocuments(trip.id);
-            
-            // Назначаем обработчики
-            document.getElementById('edit-trip-btn').addEventListener('click', () => showEditTripForm(trip));
-            document.getElementById('delete-trip-btn').addEventListener('click', () => deleteTrip(trip));
         }
 
-        // Загрузка документов командировки
         async function loadTripDocuments(tripId) {
             try {
                 const documents = await fetchData('documents');
@@ -348,326 +462,121 @@
                     html += `
                         <div class="document-item">
                             <span>${doc.document_type}: ${filename}</span>
-                            <button class="btn btn-sm btn-tg-primary view-doc-btn" data-doc-id="${doc.id}">Просмотр</button>
+                            <button class="btn-tg-secondary" onclick="viewDocument(${doc.id})">Просмотр</button>
                         </div>
                     `;
                 });
                 
                 docsEl.innerHTML = html;
-                
-                // Назначаем обработчики для кнопок просмотра
-                document.querySelectorAll('.view-doc-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const docId = parseInt(e.target.getAttribute('data-doc-id'));
-                        viewDocument(docId);
-                    });
-                });
-            } catch (err) {
-                showError("Ошибка загрузки документов: " + err.message);
+            } catch (error) {
+                showError('Ошибка загрузки документов');
             }
         }
 
-        // Просмотр документа
-        function viewDocument(docId) {
-            tg.showPopup({
-                title: "Просмотр документа",
-                message: "Документ будет открыт в новом окне",
-                buttons: [{
-                    id: 'open',
-                    type: 'default',
-                    text: 'Открыть'
-                }]
-            }, (btnId) => {
-                if (btnId === 'open') {
-                    // Здесь можно реализовать открытие документа
-                    // Например, через window.open или отправку на сервер для просмотра
-                    tg.showAlert("Функция просмотра документов в разработке");
-                }
-            });
-        }
-
-        // Форма добавления командировки
         function showAddTripForm() {
             const modal = new bootstrap.Modal(document.getElementById('tripModal'));
-            const modalBody = document.getElementById('tripModalBody');
+            document.getElementById('tripModalTitle').textContent = 'Добавить командировку';
             
-            modalBody.innerHTML = `
-                <form id="trip-form">
+            let html = `
+                <form id="tripForm">
                     <div class="mb-3">
                         <label class="form-label">Сотрудник</label>
-                        <select class="form-select" id="employee-select" required>
+                        <select class="form-select form-control-tg" id="employeeSelect" required>
                             ${employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}
                         </select>
                     </div>
                     
                     <div class="mb-3">
                         <label class="form-label">Место назначения</label>
-                        <input type="text" class="form-control" id="destination-input" list="cities-list" required>
-                        <datalist id="cities-list">
+                        <input type="text" class="form-control form-control-tg" id="destinationInput" list="citiesList" required>
+                        <datalist id="citiesList">
                             ${cities.map(c => `<option value="${c}">`).join('')}
                         </datalist>
-                        <button type="button" class="btn btn-sm btn-tg-primary mt-2" id="add-city-btn">Добавить город</button>
                     </div>
                     
                     <div class="mb-3">
                         <label class="form-label">Цель командировки</label>
-                        <input type="text" class="form-control" id="purpose-input" required>
+                        <input type="text" class="form-control form-control-tg" id="purposeInput" required>
                     </div>
                     
-                    <div class="row">
+                    <div class="row mb-3">
                         <div class="col">
                             <label class="form-label">Дата начала</label>
-                            <input type="date" class="form-control" id="start-date-input" required>
+                            <input type="date" class="form-control form-control-tg" id="startDateInput" required>
                         </div>
                         <div class="col">
                             <label class="form-label">Дата окончания</label>
-                            <input type="date" class="form-control" id="end-date-input" required>
+                            <input type="date" class="form-control form-control-tg" id="endDateInput" required>
                         </div>
                     </div>
                     
-                    <div class="mb-3 mt-3">
-                        <label class="form-label">Документы</label>
-                        <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-tg-primary" id="add-ticket-btn">Добавить билет</button>
-                            <button type="button" class="btn btn-tg-primary" id="add-voucher-btn">Добавить ваучер</button>
-                            <button type="button" class="btn btn-tg-primary" id="add-visa-btn">Добавить визу</button>
-                        </div>
-                        <div id="documents-preview" class="mt-2"></div>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-tg-primary w-100 mt-3">Сохранить</button>
+                    <button type="submit" class="btn-tg-primary w-100">Сохранить</button>
                 </form>
             `;
             
-            // Назначаем обработчики
-            document.getElementById('trip-form').addEventListener('submit', (e) => {
+            document.getElementById('tripModalBody').innerHTML = html;
+            
+            document.getElementById('tripForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                saveTrip();
-            });
-            
-            document.getElementById('add-city-btn').addEventListener('click', () => {
-                const city = document.getElementById('destination-input').value;
-                if (city) {
-                    addCity(city);
-                }
-            });
-            
-            // Обработчики для добавления документов
-            ['ticket', 'voucher', 'visa'].forEach(type => {
-                document.getElementById(`add-${type}-btn`).addEventListener('click', () => {
-                    uploadDocument(type);
-                });
+                await saveTrip();
+                modal.hide();
             });
             
             modal.show();
         }
 
-        // Загрузка документа
-        function uploadDocument(docType) {
-            tg.showPopup({
-                title: "Загрузка документа",
-                message: "Выберите файл для загрузки",
-                buttons: [{
-                    id: 'upload',
-                    type: 'default',
-                    text: 'Выбрать файл'
-                }]
-            }, async (btnId) => {
-                if (btnId === 'upload') {
-                    // В реальном приложении здесь будет вызов API для загрузки файла
-                    tg.showAlert("Функция загрузки документов в разработке");
-                }
-            });
-        }
-
-        // Добавление города
-        async function addCity(city) {
-            try {
-                const response = await fetch(`${SERVER_URL}/api/cities`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Telegram-User-ID': tgUser.id.toString()
-                    },
-                    body: JSON.stringify({ city })
-                });
-                
-                const data = await response.json();
-                if (data.status === 'ok') {
-                    cities.push(city);
-                    showSuccess("Город добавлен");
-                }
-            } catch (err) {
-                showError("Ошибка добавления города: " + err.message);
-            }
-        }
-
-        // Сохранение командировки
         async function saveTrip() {
-            const form = document.getElementById('trip-form');
-            const formData = {
-                employee_id: parseInt(document.getElementById('employee-select').value),
-                destination: document.getElementById('destination-input').value,
-                purpose: document.getElementById('purpose-input').value,
-                start_date: document.getElementById('start-date-input').value,
-                end_date: document.getElementById('end-date-input').value
-            };
+            showLoading(true);
             
             try {
+                const newTrip = {
+                    id: trips.length > 0 ? Math.max(...trips.map(t => t.id)) + 1 : 1,
+                    employee_id: parseInt(document.getElementById('employeeSelect').value),
+                    destination: document.getElementById('destinationInput').value,
+                    purpose: document.getElementById('purposeInput').value,
+                    start_date: document.getElementById('startDateInput').value,
+                    end_date: document.getElementById('endDateInput').value,
+                    created_at: new Date().toISOString(),
+                    created_by: tgUser.id
+                };
+                
                 const response = await fetch(`${SERVER_URL}/api/data/trips`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Telegram-User-ID': tgUser.id.toString()
                     },
-                    body: JSON.stringify([...trips, formData])
+                    body: JSON.stringify([...trips, newTrip])
                 });
                 
-                const data = await response.json();
-                if (data.status === 'ok') {
-                    trips.push(formData);
-                    renderCalendar();
-                    showSuccess("Командировка сохранена");
-                    bootstrap.Modal.getInstance(document.getElementById('tripModal')).hide();
+                if (!response.ok) {
+                    throw new Error('Ошибка сохранения');
                 }
-            } catch (err) {
-                showError("Ошибка сохранения командировки: " + err.message);
+                
+                trips.push(newTrip);
+                renderCalendar();
+                showSuccess('Командировка добавлена');
+            } catch (error) {
+                showError('Ошибка при сохранении');
+            } finally {
+                showLoading(false);
             }
         }
 
-        // Управление сотрудниками
-        function showEmployeesModal() {
-            const modal = new bootstrap.Modal(document.getElementById('employeesModal'));
-            const modalBody = document.getElementById('employeesModalBody');
-            
-            modalBody.innerHTML = `
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>ФИО</th>
-                            <th>Должность</th>
-                            <th>Отдел</th>
-                        </tr>
-                    </thead>
-                    <tbody id="employees-list">
-                        ${employees.map(e => `
-                            <tr>
-                                <td>${e.id}</td>
-                                <td>${e.name}</td>
-                                <td>${e.position || ''}</td>
-                                <td>${e.department || ''}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+        function showAdminPanel() {
+            document.getElementById('content').innerHTML = `
+                <div class="d-grid gap-2">
+                    <button class="btn-tg-primary" onclick="manageUsers()">Управление пользователями</button>
+                    <button class="btn-tg-primary" onclick="viewAllTrips()">Все командировки</button>
+                    <button class="btn-tg-primary" onclick="manageCities()">Управление городами</button>
+                    <button class="btn-tg-danger" onclick="systemSettings()">Настройки системы</button>
+                </div>
+                <div id="adminContent" class="mt-3"></div>
             `;
-            
-            document.getElementById('add-employee-btn').addEventListener('click', showAddEmployeeForm);
-            modal.show();
         }
 
-        // Форма добавления сотрудника
-        function showAddEmployeeForm() {
-            const modal = new bootstrap.Modal(document.getElementById('tripModal'));
-            const modalBody = document.getElementById('tripModalBody');
-            
-            modalBody.innerHTML = `
-                <form id="employee-form">
-                    <div class="mb-3">
-                        <label class="form-label">ФИО</label>
-                        <input type="text" class="form-control" id="employee-name" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Должность</label>
-                        <input type="text" class="form-control" id="employee-position">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Отдел</label>
-                        <input type="text" class="form-control" id="employee-department">
-                    </div>
-                    
-                    <button type="submit" class="btn btn-tg-primary w-100">Сохранить</button>
-                </form>
-            `;
-            
-            document.getElementById('employee-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                const newEmployee = {
-                    name: document.getElementById('employee-name').value,
-                    position: document.getElementById('employee-position').value,
-                    department: document.getElementById('employee-department').value
-                };
-                
-                try {
-                    const response = await fetch(`${SERVER_URL}/api/data/employees`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Telegram-User-ID': tgUser.id.toString()
-                        },
-                        body: JSON.stringify([...employees, newEmployee])
-                    });
-                    
-                    const data = await response.json();
-                    if (data.status === 'ok') {
-                        employees.push(newEmployee);
-                        showSuccess("Сотрудник добавлен");
-                        bootstrap.Modal.getInstance(document.getElementById('tripModal')).hide();
-                        showEmployeesModal();
-                    }
-                } catch (err) {
-                    showError("Ошибка добавления сотрудника: " + err.message);
-                }
-            });
-            
-            modal.show();
-        }
-
-        // Удаление командировки
-        async function deleteTrip(trip) {
-            tg.showPopup({
-                title: "Удаление командировки",
-                message: "Вы уверены, что хотите удалить эту командировку?",
-                buttons: [
-                    { id: 'cancel', type: 'cancel', text: 'Отмена' },
-                    { id: 'delete', type: 'destructive', text: 'Удалить' }
-                ]
-            }, async (btnId) => {
-                if (btnId === 'delete') {
-                    try {
-                        const updatedTrips = trips.filter(t => t.id !== trip.id);
-                        const response = await fetch(`${SERVER_URL}/api/data/trips`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-Telegram-User-ID': tgUser.id.toString()
-                            },
-                            body: JSON.stringify(updatedTrips)
-                        });
-                        
-                        const data = await response.json();
-                        if (data.status === 'ok') {
-                            trips = updatedTrips;
-                            renderCalendar();
-                            document.getElementById('trip-details').innerHTML = '';
-                            showSuccess("Командировка удалена");
-                        }
-                    } catch (err) {
-                        showError("Ошибка удаления командировки: " + err.message);
-                    }
-                }
-            });
-        }
-
-        // Вспомогательные функции
-        function createEmptyDay() {
-            const dayEl = document.createElement('div');
-            dayEl.className = 'day empty';
-            return dayEl;
+        function showLoading(show) {
+            document.getElementById('loading-spinner').style.display = show ? 'flex' : 'none';
         }
 
         function showSuccess(message) {
